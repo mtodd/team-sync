@@ -16,7 +16,7 @@ heroku create
 git push heroku master
 
 # configure settings
-# first generate a personal access token
+# first generate a personal access token (with admin:org scope)
 $ heroku config:set GITHUB_ACCESS_TOKEN=abcd1234
 # set source team
 $ heroku config:set SOURCE=myorg/source-team
