@@ -19,9 +19,9 @@ git push heroku master
 # first generate a personal access token
 $ heroku config:set GITHUB_ACCESS_TOKEN=abcd1234
 # set source team
-$ heroku config:set SOURCE_TEAM=myorg/source-team
+$ heroku config:set SOURCE=myorg/source-team
 # set target team(s)
-$ heroku config:set TARGET_TEAM=myorg/target-team,otherorg/target-team
+$ heroku config:set TARGET=myorg/target-team
 
 # configure cron task
 $ heroku addons:add scheduler:standard
