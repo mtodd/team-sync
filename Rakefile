@@ -1,9 +1,13 @@
 require 'octokit'
 
 Octokit.auto_paginate = true
-source_client      = Octokit::Client.new :access_token => ENV['SOURCE_GITHUB_ACCESS_TOKEN']
-destination_client = Octokit::Client.new :access_token => ENV['DESTINATION_GITHUB_ACCESS_TOKEN'],
-                                         :api_endpoint => ENV['DESTINATION_API_ENDPOINT']
+source_client      = Octokit::Client.new :access_token => ENV['GITHUB_ACCESS_TOKEN'] || ENV['SOURCE_GITHUB_ACCESS_TOKEN']
+destination_client = if ENV['DESTINATION_API_ENDPOINT']
+  destination_client = Octokit::Client.new :access_token => ENV['DESTINATION_GITHUB_ACCESS_TOKEN'],
+                                           :api_endpoint => ENV['DESTINATION_API_ENDPOINT']
+else
+  source_client
+end
 
 # Array[members_to_add Array, members_to_remove Array, unchanged Array]
 def reconcile_members(source, target)
