@@ -29,12 +29,12 @@ namespace :team do
       end
 
     source_id = source_org_teams.detect{ |t| t.slug == source_team_name }[:id]
-    target_team = target_org_teams.detect{ |t| t.slug == target_team_name }
-    target_id = target_team && target_team.id
 
-    if target_id.nil?
-      team = destination_client.create_team(target_org, {:name => target_team_name})
-      target_id = team.id
+    target_team = target_org_teams.detect{ |t| t.slug == target_team_name }
+    target_id = if target_team
+      target_team.id
+    else
+      destination_client.create_team(target_org, {:name => target_team_name}).id
     end
 
     # https://developer.github.com/v3/orgs/teams/#list-team-members
