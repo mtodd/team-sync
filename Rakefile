@@ -1,7 +1,9 @@
 require 'octokit'
 
 Octokit.auto_paginate = true
-client = Octokit::Client.new :access_token => ENV['GITHUB_ACCESS_TOKEN']
+source_client      = Octokit::Client.new :access_token => ENV['SOURCE_GITHUB_ACCESS_TOKEN']
+destination_client = Octokit::Client.new :access_token => ENV['DESTINATION_GITHUB_ACCESS_TOKEN'],
+                                         :api_endpoint => "https://ghe.io/api/v3"
 
 # Array[members_to_add Array, members_to_remove Array, unchanged Array]
 def reconcile_members(source, target)
@@ -14,35 +16,56 @@ end
 
 namespace :team do
   task :sync do
-    source_org, source_team = ENV['SOURCE'].split('/')
-    target_org, target_team = ENV['TARGET'].split('/')
+    puts "sync"
+    source_org, source_team_name = ENV['SOURCE'].split('/')
+    target_org, target_team_name = ENV['TARGET'].split('/')
 
-    source_org_teams = client.organization_teams(source_org)
+    puts "source_org: #{source_org} team:#{source_team_name}"
+    puts "target_org: #{target_org} team:#{target_team_name}"
+
+    source_org_teams = source_client.organization_teams(source_org)
+
     target_org_teams =
       if source_org == target_org
         source_org_teams
       else
-        client.organization_teams(target_org)
+        destination_client.organization_teams(target_org)
       end
 
-    source_id = source_org_teams.detect{ |t| t.slug == source_team }[:id]
-    target_id = source_org_teams.detect{ |t| t.slug == target_team }[:id]
+    source_id = source_org_teams.detect{ |t| t.slug == source_team_name }[:id]
+    target_team = target_org_teams.detect{ |t| t.slug == target_team_name }
+    target_id = target_team && target_team.id
+
+    puts "target_id: #{target_id}"
+    if target_id.nil?
+      puts "Need to create team '#{target_team_name}'"
+      team = destination_client.create_team(target_org, {:name => target_team_name})
+      puts team.inspect
+      target_id = team.id
+    end
 
     # https://developer.github.com/v3/orgs/teams/#list-team-members
-    source_members = Set.new client.team_members(source_id).map(&:login)
-    target_members = Set.new client.team_members(target_id).map(&:login)
+    source_members = Set.new source_client.team_members(source_id).map(&:login)
+    target_members = Set.new destination_client.team_members(target_id).map(&:login)
+
+    puts "source_members: #{source_members.inspect}"
+    puts "target_members: #{target_members.inspect}"
 
     to_add, to_remove, rest = reconcile_members(source_members, target_members)
 
     to_add.each do |login|
       # https://developer.github.com/v3/orgs/teams/#add-team-member
-      client.add_team_member(target_id, login)
+      destination_client.add_team_member(target_id, login)
     end
 
     to_remove.each do |login|
       # https://developer.github.com/v3/orgs/teams/#remove-team-member
-      client.remove_team_member(target_id, login)
+      destination_client.remove_team_member(target_id, login)
     end
+
+    puts "To Add: #{to_add.inspect}"
+    puts "To Remove: #{to_remove.inspect}"
+    puts "Rest: #{rest.inspect}"
   end
 end
 
