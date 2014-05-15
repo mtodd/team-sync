@@ -3,7 +3,7 @@ require 'octokit'
 Octokit.auto_paginate = true
 source_client      = Octokit::Client.new :access_token => ENV['SOURCE_GITHUB_ACCESS_TOKEN']
 destination_client = Octokit::Client.new :access_token => ENV['DESTINATION_GITHUB_ACCESS_TOKEN'],
-                                         :api_endpoint => "https://ghe.io/api/v3"
+                                         :api_endpoint => ENV['DESTINATION_API_ENDPOINT']
 
 # Array[members_to_add Array, members_to_remove Array, unchanged Array]
 def reconcile_members(source, target)
