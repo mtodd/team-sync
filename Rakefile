@@ -1,10 +1,15 @@
 require 'octokit'
 
 Octokit.auto_paginate = true
-source_client      = Octokit::Client.new :access_token => ENV['GITHUB_ACCESS_TOKEN'] || ENV['SOURCE_GITHUB_ACCESS_TOKEN']
+source_client = if ENV['SOURCE_API_ENDPOINT']
+  Octokit::Client.new :access_token => ENV['SOURCE_GITHUB_ACCESS_TOKEN'],
+                      :api_endpoint => ENV['SOURCE_API_ENDPOINT']
+else
+  Octokit::Client.new :access_token => ENV['GITHUB_ACCESS_TOKEN']
+end
 target_client = if ENV['DESTINATION_API_ENDPOINT']
   Octokit::Client.new :access_token => ENV['DESTINATION_GITHUB_ACCESS_TOKEN'],
-                                           :api_endpoint => ENV['DESTINATION_API_ENDPOINT']
+                      :api_endpoint => ENV['DESTINATION_API_ENDPOINT']
 else
   source_client
 end
