@@ -7,9 +7,9 @@ source_client = if ENV['SOURCE_API_ENDPOINT']
 else
   Octokit::Client.new :access_token => ENV['GITHUB_ACCESS_TOKEN']
 end
-target_client = if ENV['DESTINATION_API_ENDPOINT']
-  Octokit::Client.new :access_token => ENV['DESTINATION_GITHUB_ACCESS_TOKEN'],
-                      :api_endpoint => ENV['DESTINATION_API_ENDPOINT']
+target_client = if ENV['TARGET_API_ENDPOINT']
+  Octokit::Client.new :access_token => ENV['TARGET_GITHUB_ACCESS_TOKEN'],
+                      :api_endpoint => ENV['TARGET_API_ENDPOINT']
 else
   source_client
 end
